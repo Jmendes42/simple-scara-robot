@@ -1,43 +1,52 @@
-
 import numpy as np
+import matplotlib.pyplot as plt
 
+L1 = 6.0
+L2 = 4.7
+L3 = 0.1
+L4 = 2.8
 
-theta1 = 13
-theta2 = 87
+def degrees_to_radians(deg):
+    return np.deg2rad(deg)
 
-theta1 = (theta1 / 180) * np.pi
-theta2 = (theta2 / 180) * np.pi
+def forward_kinematics(theta1_deg, theta2_deg, plot=True):
+    theta1 = degrees_to_radians(theta1_deg)
+    theta2 = degrees_to_radians(theta2_deg)
 
-rotationMatrix0_1 = [[np.cos(theta1), -np.sin(theta1), 0], [np.sin(theta1), np.cos(theta1), 0], [0, 0, 1]]
-rotationMatrix1_2 = [[np.cos(theta2), -np.sin(theta2), 0], [np.sin(theta2), np.cos(theta2), 0], [0, 0, 1]]
+    # Position of first joint (elbow)
+    x1 = L1 * np.cos(theta1)
+    y1 = L1 * np.sin(theta1)
 
-rotationMatrix0_2 = np.dot(rotationMatrix0_1, rotationMatrix1_2)
+    # Position of end of second link (before tool offset)
+    x2 = x1 + L2 * np.cos(theta1 + theta2)
+    y2 = y1 + L2 * np.sin(theta1 + theta2)
 
-print(np.matrix(rotationMatrix0_2))
-print("\n")
+    # Apply tool offset (L4) in direction of end-effector
+    x_end = x2 + L4 * np.cos(theta1 + theta2)
+    y_end = y2 + L4 * np.sin(theta1 + theta2)
 
-a2 = 5.975
-a3 = 5.6
-a4 = 4.6975
-a5 = 4.1738
+    if plot:
+        plt.figure()
+        plt.plot([0, x1, x2, x_end], [0, y1, y2, y_end], "-o", lw=2)
+        plt.axis("equal")
+        plt.grid(True)
+        plt.title(f"FK: θ1={theta1_deg:.1f}°, θ2={theta2_deg:.1f}°")
+        plt.xlabel("X (cm)")
+        plt.ylabel("Y (cm)")
+        plt.show()
 
-displacementVector0_1 = [[a2*np.cos(theta1)], [a2*np.sin(theta1)], [a3]]
-displacementVector1_2 = [[a4*np.cos(theta2)], [a4*np.sin(theta2)], [-a5]]
+    return x_end, y_end
 
-print(np.matrix(displacementVector1_2))
-print("\n")
+if __name__ == "__main__":
+    test_angles = [
+        (97, 156),
+        (36, 144),
+        (0, 156),
+        (46, 173),
+    ]
 
-homogeneousMatrix0_1 = np.concatenate((rotationMatrix0_1, displacementVector0_1), axis = 1)
-homogeneousMatrix0_1 = np.concatenate((homogeneousMatrix0_1, [[0, 0, 0, 1]]), axis = 0)
+    for t1, t2 in test_angles:
+        x, y = forward_kinematics(t1, t2, plot=False)
+        print(f"θ1={t1}°, θ2={t2}° -> FK = ({x:.2f}, {y:.2f})")
 
-homogeneousMatrix1_2 = np.concatenate((rotationMatrix1_2, displacementVector1_2), axis = 1)
-homogeneousMatrix1_2 = np.concatenate((homogeneousMatrix1_2, [[0, 0, 0, 1]]), axis = 0)
-
-# print(np.matrix(homogeneousMatrix1_2))
-
-homogeneousMatrix0_2 = np.dot(homogeneousMatrix0_1, homogeneousMatrix1_2)
-
-print(np.matrix(homogeneousMatrix0_2))
-
-# y = 4.2 x = 10.3
-
+    forward_kinematics(46, 173)

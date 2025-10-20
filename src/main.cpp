@@ -38,10 +38,10 @@ void setup()
 
     // Test target positions
     float testPoints[][2] = {
-        {6, 4},    // forward-right
-        {0, 8},    // straight ahead
+        // {0, 10.6},    // forward-right
+        // {0, 8},    // straight ahead
         {-6, 4},   // forward-left
-        {0, 6}     // back toward center
+        // {0, 6}     // back toward center
     };
 
     for (auto &p : testPoints) {
